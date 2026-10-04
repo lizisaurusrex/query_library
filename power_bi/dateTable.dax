@@ -1,0 +1,124 @@
+dateTable =
+VAR StartDate =
+    DATE ( 2015, 1, 1 )
+VAR EndDate =
+    DATE ( YEAR ( TODAY () ) + 2, 12, 31 )
+RETURN
+    ADDCOLUMNS (
+        CALENDAR ( StartDate, EndDate ),
+
+        // DATE
+        "DateKey", VALUE ( FORMAT ( [Date], "YYYYMMDD" ) ),
+        "Date Label", FORMAT ( [Date], "MM/dd/yyyy" ),
+
+        // CALENDAR YEAR
+        "Year", YEAR ( [Date] ),
+
+        // CALENDAR QUARTER
+        "Quarter Number", QUARTER ( [Date] ),
+        "Quarter", "Q" & QUARTER ( [Date] ),
+        "Year Quarter",
+            FORMAT ( [Date], "YYYY" ) & " Q" & QUARTER ( [Date] ),
+        "Year Quarter Sort",
+            YEAR ( [Date] ) * 10 + QUARTER ( [Date] ),
+
+        // MONTH
+        "Month Number", MONTH ( [Date] ),
+        "Month", FORMAT ( [Date], "MMMM" ),
+        "Month Short", FORMAT ( [Date], "MMM" ),
+        "Month Start",
+            DATE ( YEAR ( [Date] ), MONTH ( [Date] ), 1 ),
+        "Month End",
+            EOMONTH ( [Date], 0 ),
+        "Year Month", FORMAT ( [Date], "MMM yyyy" ),
+        "Year Month Sort",
+            YEAR ( [Date] ) * 100 + MONTH ( [Date] ),
+
+        // WEEK
+        // Monday = first day
+        "Week Number", WEEKNUM ( [Date], 2 ),
+        "Week Start",
+            [Date] - WEEKDAY ( [Date], 2 ) + 1,
+        "Week End",
+            [Date] - WEEKDAY ( [Date], 2 ) + 7,
+
+        // DAY
+        "Day", DAY ( [Date] ),
+        "Day of Week Number", WEEKDAY ( [Date], 2 ),
+        "Day of Week", FORMAT ( [Date], "dddd" ),
+        "Day of Week Short", FORMAT ( [Date], "ddd" ),
+        "Is Weekend", IF ( WEEKDAY ( [Date], 2 ) >= 6, 1, 0 ),
+        "Is Weekday", IF ( WEEKDAY ( [Date], 2 ) <= 5, 1, 0 ),
+
+        // FISCAL YEAR
+        // July 1 - June 30
+        "Fiscal Year Number",
+            YEAR ( [Date] ) + IF ( MONTH ( [Date] ) >= 7, 1, 0 ),
+        "Fiscal Year",
+            "FY"
+                & RIGHT (
+                    FORMAT (
+                        YEAR ( [Date] ) + IF ( MONTH ( [Date] ) >= 7, 1, 0 ),
+                        "0000"
+                    ),
+                    2
+                ),
+
+        // FISCAL MONTH
+        // July = 1, June = 12
+        "Fiscal Month Number",
+            MOD ( MONTH ( [Date] ) - 7, 12 ) + 1,
+        "Fiscal Month", FORMAT ( [Date], "MMMM" ),
+        "Fiscal Month Short", FORMAT ( [Date], "MMM" ),
+
+        // FISCAL QUARTER
+        "Fiscal Quarter Number",
+            INT ( MOD ( MONTH ( [Date] ) - 7, 12 ) / 3 ) + 1,
+        "Fiscal Quarter",
+            "FQ" & ( INT ( MOD ( MONTH ( [Date] ) - 7, 12 ) / 3 ) + 1 ),
+
+        // FISCAL YEAR + QUARTER
+        "Fiscal Year Quarter",
+            "FY"
+                & RIGHT (
+                    FORMAT (
+                        YEAR ( [Date] ) + IF ( MONTH ( [Date] ) >= 7, 1, 0 ),
+                        "0000"
+                    ),
+                    2
+                )
+                & " FQ"
+                & ( INT ( MOD ( MONTH ( [Date] ) - 7, 12 ) / 3 ) + 1 ),
+        "Fiscal Year Quarter Sort",
+            ( YEAR ( [Date] ) + IF ( MONTH ( [Date] ) >= 7, 1, 0 ) ) * 10
+                + ( INT ( MOD ( MONTH ( [Date] ) - 7, 12 ) / 3 ) + 1 ),
+
+        // FISCAL YEAR + MONTH
+        "Fiscal Year Month",
+            "FY"
+                & RIGHT (
+                    FORMAT (
+                        YEAR ( [Date] ) + IF ( MONTH ( [Date] ) >= 7, 1, 0 ),
+                        "0000"
+                    ),
+                    2
+                )
+                & " "
+                & FORMAT ( [Date], "MMM" ),
+        "Fiscal Year Month Sort",
+            ( YEAR ( [Date] ) + IF ( MONTH ( [Date] ) >= 7, 1, 0 ) ) * 100
+                + MOD ( MONTH ( [Date] ) - 7, 12 ) + 1,
+
+        // FISCAL YTD
+        "Is Fiscal YTD",
+            VAR TodayDate =
+                TODAY ()
+            VAR CurrentFYStart =
+                DATE (
+                    YEAR ( TodayDate ) - IF ( MONTH ( TodayDate ) < 7, 1, 0 ),
+                    7,
+                    1
+                )
+            RETURN
+                IF ( [Date] >= CurrentFYStart && [Date] <= TodayDate, 1, 0 )
+    )
